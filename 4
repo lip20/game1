@@ -1,0 +1,239 @@
+#Import the dataset
+loan <- read.csv("credit_data.csv")
+#Structure
+str(loan)
+## 'data.frame': 1000 obs. of 21 variables:
+## $ Creditability : int 1 1 1 1 1 1 1 1 1 1 ...
+## $ Account.Balance : int 1 1 2 1 1 1 1 1 4 2 ...
+## $ Duration.of.Credit..month. : int 18 9 12 12 12 10 8 6 18 24 ...
+## $ Payment.Status.of.Previous.Credit: int 4 4 2 4 4 4 4 4 4 2 ...
+## $ Purpose : int 2 0 9 0 0 0 0 0 3 3 ...
+## $ Credit.Amount : int 1049 2799 841 2122 2171 2241 3398 13
+61 1098 3758 ...
+## $ Value.Savings.Stocks : int 1 1 2 1 1 1 1 1 1 3 ...
+## $ Length.of.current.employment : int 2 3 4 3 3 2 4 2 1 1 ...
+## $ Instalment.per.cent : int 4 2 2 3 4 1 1 2 4 1 ...
+## $ Sex...Marital.Status : int 2 3 2 3 3 3 3 3 2 2 ...
+## $ Guarantors : int 1 1 1 1 1 1 1 1 1 1 ...
+## $ Duration.in.Current.address : int 4 2 4 2 4 3 4 4 4 4 ...
+## $ Most.valuable.available.asset : int 2 1 1 1 2 1 1 1 3 4 ...
+## $ Age..years. : int 21 36 23 39 38 48 39 40 65 23 ...
+## $ Concurrent.Credits : int 3 3 3 3 1 3 3 3 3 3 ...
+## $ Type.of.apartment : int 1 1 1 1 2 1 2 2 2 1 ...
+## $ No.of.Credits.at.this.Bank : int 1 2 1 2 2 2 2 1 2 1 ...
+## $ Occupation : int 3 3 2 2 2 2 2 2 1 1 ...
+## $ No.of.dependents : int 1 2 1 2 1 2 1 2 1 1 ...
+## $ Telephone : int 1 1 1 1 1 1 1 1 1 1 ...
+## $ Foreign.Worker : int 1 1 1 2 2 2 2 2 1 1 ...
+#Data Cleaning
+#From the structure of the dataset, we can see that there are 21 predictor variabl
+es that will help us 
+#to decide whether or not an applicant's loan must be approved.
+#Some of these variables are not essential in predicting the loan of an applicant, 
+for example, 
+#variables such as Telephone, Concurrent. Credits, Duration.in.Current.address, 
+Type.of.apartment, etc. 
+#Such variables must be removed because they will only increase the complexity of 
+the Machine Learning model.
+#Also note that, the 'Creditability' variable is our output variable or the target 
+variable.
+Data Science Laboratory Manual [P18ISL76] | BRAMESH S M
+P a g e 29 | 45
+loan.subset <- loan[c('Creditability','Age..years.','Sex...Marital.Status','Occupa
+tion','Account.Balance','Credit.Amount','Length.of.current.employment','Purpose')]
+#Again see the structure 
+#Now we have narrowed down 21 variables to 8 predictor variables that are signific
+ant for building the model.
+str(loan.subset)
+## 'data.frame': 1000 obs. of 8 variables:
+## $ Creditability : int 1 1 1 1 1 1 1 1 1 1 ...
+## $ Age..years. : int 21 36 23 39 38 48 39 40 65 23 ...
+## $ Sex...Marital.Status : int 2 3 2 3 3 3 3 3 2 2 ...
+## $ Occupation : int 3 3 2 2 2 2 2 2 1 1 ...
+## $ Account.Balance : int 1 1 2 1 1 1 1 1 4 2 ...
+## $ Credit.Amount : int 1049 2799 841 2122 2171 2241 3398 1361 10
+98 3758 ...
+## $ Length.of.current.employment: int 2 3 4 3 3 2 4 2 1 1 ...
+## $ Purpose : int 2 0 9 0 0 0 0 0 3 3 ...
+#Data Normalization
+#You must always normalize the data set so that the output remains unbiased. To 
+explain this, let's take a look at the first few observations in our data set.
+head(loan.subset)
+## Creditability Age..years. Sex...Marital.Status Occupation Account.Balance
+## 1 1 21 2 3 1
+## 2 1 36 3 3 1
+## 3 1 23 2 2 2
+## 4 1 39 3 2 1
+## 5 1 38 3 2 1
+## 6 1 48 3 2 1
+## Credit.Amount Length.of.current.employment Purpose
+## 1 1049 2 2
+## 2 2799 3 0
+## 3 841 4 9
+## 4 2122 3 0
+## 5 2171 3 0
+## 6 2241 2 0
+#Notice the Credit amount variable, its value scale is in 1000s, whereas the rest 
+of the variables are in single digits or 2 digits. If the data isn't normalized it 
+will lead to a biased outcome.
+#Normalization function
+normalize <- function(x) {
+ return ((x - min(x)) / (max(x) - min(x))) }
+#In the below code snippet, we're storing the normalized data set in the 'loan.sub
+set.n' variable and 
+#also we're removing the 'Credibility' variable since it's the response variable t
+hat needs to be predicted.
+loan.subset.n <- as.data.frame(lapply(loan.subset[,2:8], normalize))
+#Normalized dataset
+head(loan.subset.n)
+Data Science Laboratory Manual [P18ISL76] | BRAMESH S M
+P a g e 30 | 45
+## Age..years. Sex...Marital.Status Occupation Account.Balance Credit.Amount
+## 1 0.03571429 0.3333333 0.6666667 0.0000000 0.04396390
+## 2 0.30357143 0.6666667 0.6666667 0.0000000 0.14025531
+## 3 0.07142857 0.3333333 0.3333333 0.3333333 0.03251898
+## 4 0.35714286 0.6666667 0.3333333 0.0000000 0.10300429
+## 5 0.33928571 0.6666667 0.3333333 0.0000000 0.10570045
+## 6 0.51785714 0.6666667 0.3333333 0.0000000 0.10955211
+## Length.of.current.employment Purpose
+## 1 0.25 0.2
+## 2 0.50 0.0
+## 3 0.75 0.9
+## 4 0.50 0.0
+## 5 0.50 0.0
+## 6 0.25 0.0
+#Data Spliting
+set.seed(123)
+dat.d <- sample(1:nrow(loan.subset.n),size=nrow(loan.subset.n)*0.7,replace=FALSE) 
+#random selection of 70% data.
+train.loan <- loan.subset[dat.d,] # 70% training data
+test.loan <- loan.subset[-dat.d,] # remaining 30% test data
+#Creating seperate dataframe for 'Creditability' feature which is our target.
+train.loan_labels <- loan.subset[dat.d,1]
+test.loan_labels <-loan.subset[-dat.d,1]
+#Install class package
+#install.packages('class')
+# Load class package 
+library(class) # For K-NN
+#Next, we're going to calculate the number of observations in the training data 
+set. 
+#The reason we're doing this is that we want to initialize the value of 'K' in the 
+K-NN model. 
+#One of the ways to find the optimal K value is to calculate the square root of 
+the total number of 
+#observations in the data set. This square root will give you the 'K' value.
+#Find the number of observation 
+NROW(train.loan_labels) 
+## [1] 700
+#So, we have 700 observations in our training data set. The square root of 700 is 
+around 26.45, 
+#therefore we'll create two models. One with 'K' value as 26 and the other model w
+ith a 'K' value as 27.
+knn.26 <- knn(train=train.loan, test=test.loan, cl=train.loan_labels, k=26)
+knn.27 <- knn(train=train.loan, test=test.loan, cl=train.loan_labels, k=27)
+Data Science Laboratory Manual [P18ISL76] | BRAMESH S M
+P a g e 31 | 45
+#Model Evaluation
+#Calculate the proportion of correct classification for k = 26, 27
+ACC.26 <- 100 * sum(test.loan_labels == knn.26)/NROW(test.loan_labels)
+ACC.27 <- 100 * sum(test.loan_labels == knn.27)/NROW(test.loan_labels)
+ACC.26
+## [1] 68.66667
+ACC.27
+## [1] 69
+#Finding: The accuracy for K = 26 is 68.66 and for K = 27 it is 69. We can also 
+check the predicted outcome against the actual value in tabular form:
+ 
+# Check prediction against actual value in tabular form for k=26
+table(knn.26 ,test.loan_labels) 
+## test.loan_labels
+## knn.26 0 1
+## 0 8 7
+## 1 87 198
+knn.26
+## [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1
+## [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1
+## [75] 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1
+## [112] 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [149] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 0 1 1 1 1 1 1 1 1 1 1
+## [186] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [223] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 1 1 1 1 1 1
+## [260] 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 0 0 1 1 1 1
+## [297] 1 1 1 0
+## Levels: 0 1
+# Check prediction against actual value in tabular form for k = 27
+table(knn.27 ,test.loan_labels)
+## test.loan_labels
+## knn.27 0 1
+## 0 8 6
+## 1 87 199
+knn.27
+## [1] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1
+## [38] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1
+## [75] 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [112] 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [149] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 0 0 1 1 1 1 1 1 1 1 1 1
+## [186] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1
+## [223] 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 0 1 1 1 1 1 1
+## [260] 1 1 1 1 0 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 1 1 1 1 1 1 0 0 1 1 1 1
+## [297] 1 1 1 0
+## Levels: 0 1
+Data Science Laboratory Manual [P18ISL76] | BRAMESH S M
+P a g e 32 | 45
+#You can also use the confusion matrix to calculate the accuracy. 
+#To do this we must first install the Caret package:
+#install.packages('caret')
+library(caret)
+## Loading required package: ggplot2
+## Loading required package: lattice
+confusionMatrix(table(knn.26 ,test.loan_labels))
+## Confusion Matrix and Statistics
+## 
+## test.loan_labels
+## knn.26 0 1
+## 0 8 7
+## 1 87 198
+## 
+## Accuracy : 0.6867 
+## 95% CI : (0.6309, 0.7387)
+## No Information Rate : 0.6833 
+## P-Value [Acc > NIR] : 0.4783 
+## 
+## Kappa : 0.0647 
+## 
+## Mcnemar's Test P-Value : 3.693e-16 
+## 
+## Sensitivity : 0.08421 
+## Specificity : 0.96585 
+## Pos Pred Value : 0.53333 
+## Neg Pred Value : 0.69474 
+## Prevalence : 0.31667 
+## Detection Rate : 0.02667 
+## Detection Prevalence : 0.05000 
+## Balanced Accuracy : 0.52503 
+## 
+## 'Positive' Class : 0 
+## 
+#So, from the output, we can see that our model predicts the outcome with an 
+accuracy of 68.67% which 
+#is good since we worked with a small data set. A point to remember is that the 
+more data (optimal data) you feed the machine, the more efficient the model 
+will be.
+# Create a loop that calculates the accuracy of the K-NN model for 'K' values rang
+ing from 1 to 28. 
+#This way you can check which 'K' value will result in the most accurate model:
+i=1
+k.optm=1
+for (i in 1:28){
+ knn.mod <- knn(train=train.loan, test=test.loan, cl=train.loan_labels, k=i)
+ k.optm[i] <- 100 * sum(test.loan_labels == knn.mod)/NROW(test.loan_labels)
+ k=i
+ cat(k,'=',k.optm[i],'') }
+Data Science Laboratory Manual [P18ISL76] | BRAMESH S M
+P a g e 33 | 45
+## 1 = 57.33333 2 = 59.33333 3 = 59.33333 4 = 57.66667 5 = 62.66667 6 = 62 7 = 64.
+66667 8 = 66 9 = 67 10 = 65 11 = 66.66667 12 = 66 13 = 68 14 = 67.66667 15 = 67.33
+333 16 = 67.66667 17 = 69 18 = 69 19 = 69 20 = 68.33333 21 = 68.66667 22 = 69 23 = 
+68.66667 24 = 68.66667 25 = 68.66667 26 = 69 27 = 69 28 = 69
+#Accuracy plot; Graphical representation
+plot(k.optm, type="b", xlab="K- Value",ylab="Accuracy level")
